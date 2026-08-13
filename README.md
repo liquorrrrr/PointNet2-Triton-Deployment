@@ -1,31 +1,35 @@
 # PointNet2-Triton-Deployment
 This project is based on the classic 3D point cloud network PointNet2, and uses OpenAI Triton language and NVIDIA Triton Server to achieve stable and reliable cloud deployment. It aims to address the pain points of "difficult operator compilation" and "slow model deployment" in the industrial application of 3D point cloud processing.
-### 📊 算子性能超越 CUDA 基线
+### 📊 The performance of the operator exceeds the CUDA baseline.
 
 ![算子性能对比图](assets/op_performance.png) 
-*(图：OpenAI Triton 算子与原生 CUDA 算子的 Nsight Compute 底层耗时对比)*
+*(Figure: Comparison of underlying execution time between OpenAI Triton FPS operator and native CUDA operator in Nsight Compute)*
 
-**核心优化动机：** 
-为了打造一条极速的云端部署路线，我们必须彻底避开 C++/CUDA 的复杂编译链以及繁琐的 TensorRT 算子插件编写。
-如上图所示，我们使用 OpenAI Triton 重写了 PointNet++ 的核心非标算子（Farthest Point Sampling 与 Ball Query）。测试证明，**纯 Python 语境下的 Triton 算子性能，成功追平甚至超越了原作者手写的 CUDA 算子基线。**
+![算子性能对比图](assets/op_performance.png) 
+*(Figure: Comparison of underlying execution time between OpenAI Triton BQ operator and native CUDA operator in Nsight Compute)*
+
+**Core optimization motivation：** 
+In order to create a fast cloud deployment route, we completely avoided the complex compilation chain of C++/CUDA and the cumbersome TensorRT operator plugin writing. We rewrote the core non-standard operators (Farthest Point Sampling and Ball Query) of PointNet++ using OpenAI Triton. As shown in the above figure, the throughput and time consumption of our FPS and BQ operators under different Batch sizes and input point cloud numbers N are superior to those of the CUDA operators. Specific test details can be found in assets/1.pdf. The test results prove that the performance of Triton operators in a pure Python environment has successfully matched and even surpassed the baseline of the CUDA operators written by the original author. **
 
 ---
 
-### 🌩️ TIS 云端部署与极限压测
+### 🌩️ TIS Cloud Deployment and Extreme Load Testing
 
-基于上述 Triton 优化算子，我们放弃了传统的 ONNX/TensorRT 路线，直接使用 NVIDIA TIS 的 **Python Backend** 实现了 100% Python 环境的原生挂载部署。
+Based on the above Triton optimization operator, we abandoned the traditional ONNX/TensorRT approach and directly used NVIDIA TIS's **Python Backend** to achieve native mounting deployment in a 100% Python environment.
 
-为了验证该链路的工业级可靠性，我们在单张 NVIDIA A10 显卡上，针对 80 并发进行了长达 5 分钟的高压稳态压测。在 TIS 的动态批处理（Dynamic Batching）加持下，服务表现极其稳定，完美榨干了物理算力：
+To verify the industrial-grade reliability of this link, we concurrently ran two instance models on a single NVIDIA A10 graphics card. First, we conducted a 5-second short-term stress test for 10-100 concurrent instances, and the results are shown in Table 1; then, in a scenario where the business SLA was designed with a client delay of less than 1.5 seconds, we conducted a 5-minute long-term high-pressure concurrent performance stress test for 80 concurrent instances, and the results are shown in Table 2. Through the Prometheus Metrics probe, we captured the real-time hardware status of TIS. The results showed: - **GPU Utilization (Utilization): Stabilized at 97%**, perfectly extracting the computing power of the A10, - **Power Usage Threshold (Power Usage): Maintained at 144.9W / 150W extreme power consumption**, the graphics processing unit (SM) was in an extremely dense and fully loaded working area. - **Long-term Failure Rate (Failure Rate): Maintained at 0 failures**. The dynamic concatenation mechanism (Avg Batch Size ≈ 24) operated smoothly, without OOM or request avalanche accumulation. This verified the high availability of this deployment solution.
 
-**表 1：吞吐量与长尾延迟指标**
+**Table 1: Short-term Stepwise Concurrent Stress Testing**
 
-**表 2：硬件资源压榨指标 (Nsys/Ncu 监控)**
+**Table 2: Long-term High Voltage Concurrent Extreme Performance Stress Test**
 
-### 🚀 快速复现 (How to Run)
+### 🚀 How to Run
 
-**前置要求：** 宿主机已安装 Docker 及支持 GPU 穿透的 [NVIDIA Container Toolkit](<a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html" title="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html" target="_blank"><img src="/images/ext/file.png" alt="" style="width: 32px; height: 32px; vertical-align: middle;"></a>)。
+**Pre-requisite：** The hosting machine has installed Docker and the [NVIDIA Container Toolkit] which supports GPU penetration.(<a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html" title="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html" target="_blank"><img src="/images/ext/file.png" alt="" style="width: 32px; height: 32px; vertical-align: middle;"></a>)。
 
-**1. 构建定制镜像**
-由于 TIS 官方镜像缺少 Triton 编译环境，需先通过 Dockerfile 补全依赖：
+**1. Build a customized image**
+Since the official TIS image lacks the Triton compilation environment, the dependencies need to be completed by using the Dockerfile:
 ```bash
 docker build -t custom_tis_pointnet:v1 .
+
+2. One-click Service Activation
