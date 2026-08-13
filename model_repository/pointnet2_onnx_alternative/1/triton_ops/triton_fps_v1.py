@@ -17,7 +17,6 @@ def _fps_v1_kernel(
     cols = tl.arange(0, BLOCK_SIZE)
     mask = cols < N
 
-    # 初始化所有点的距离为无穷大
     tl.store(temp_batch + cols, tl.full((BLOCK_SIZE,), 1e10, dtype=tl.float32), mask=mask)
 
     farthest_idx = 0
@@ -32,7 +31,6 @@ def _fps_v1_kernel(
         y = tl.load(xyz_batch + cols * 3 + 1, mask=mask, other=0.0)
         z = tl.load(xyz_batch + cols * 3 + 2, mask=mask, other=0.0)
 
-        # 平方计算不能之间使用 (x - f_x)**2 + (y - f_y)**2 + (z - f_z)**2，需要改为分开计算 dx, dy, dz 再用自己乘自己计算平方。
         # dist = (x - f_x)**2 + (y - f_y)**2 + (z - f_z)**2
         dx = x - f_x
         dy = y - f_y
@@ -50,17 +48,14 @@ def _fps_v1_kernel(
 
 def triton_fps_v1(xyz, npoint):
     assert xyz.is_cuda, "Input must be on GPU"
-    xyz = xyz.contiguous() # Triton 强要求显存连续
+    xyz = xyz.contiguous() 
     B, N, C = xyz.shape
     device = xyz.device
 
     idx = torch.zeros((B, npoint), dtype=torch.int32, device=device)
     temp_dist = torch.empty((B, N), dtype=torch.float32, device=device)
-
-    # 动态计算大于 N 的最小 2 的幂次方 (如 N=8192 则 BLOCK_SIZE=8192)
     BLOCK_SIZE = 1 << (N - 1).bit_length()
 
-    # num_warps=16 (512线程) 极限压榨并发度掩盖内存延迟
     _fps_v1_kernel[(B,)](
         xyz, temp_dist, idx,
         B, N, npoint,
