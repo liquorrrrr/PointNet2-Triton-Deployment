@@ -4,7 +4,7 @@ RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple \
     torch==2.1.2 \
     triton==2.1.0 \
     ninja \
-    numpy \
+    numpy \ # Comparing with the original author's CUDA_ops
     sympy
 
 WORKDIR /opt/tritonserver
