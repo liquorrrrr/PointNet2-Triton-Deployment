@@ -21,30 +21,31 @@ To verify the industrial-grade reliability of this link, we concurrently ran two
 
 **Table 1: Short-term Stepwise Concurrent Stress Testing**
 
-| Metric Category | Key Indicator | Value | Detailed Breakdown |
-| :--- | :--- | :--- | :--- |
-| **Global Throughput** | **Throughput** | **104.78 infer/sec** | Total Request/Inference Count: 113,175 (100% Success) |
-| **Execution Stats** | Execution Count | 4,255 | Averaged Dynamic Batch Size: ~26.59 |
-| **Latency Percentiles** | **p99 Latency** | **986,845 µsec** | p50: 762,714 µsec \| p90: 857,837 µsec \| p95: 899,918 µsec |
-| **Request Breakdown** | Avg Request Latency | 759,977 µsec | **Compute**: 537,271 µsec \| **Queue**: 217,111 µsec \| Input/Output: ~5,146 µsec |
-| **HTTP Overhead** | Avg HTTP Time | 763,279 µsec | Send/Recv: 1,076 µsec \| Response Wait: 762,203 µsec |
-
-*(Note: The compute overhead only took ~537ms, while dynamic batching queue took ~217ms, proving the hardware is perfectly saturated without queue avalanches.)*
+| Concurrency | throughput | latency |
+| :---: | :---: | :---: |
+| 10 | 106.87 infer/sec | 93313 usec |
+| 20 | 106.321 infer/sec | 187028 usec |
+| 30 | 105.766 infer/sec | 283234 usec |
+| 40 | 103.926 infer/sec | 376484 usec |
+| 50 | 105.764 infer/sec | 476418 usec |
+| 60 | 102.928 infer/sec | 572095 usec |
+| 70 | 104.419 infer/sec | 663141 usec |
+| **80** | **104.871 infer/sec** | **758578 usec** |
+| 90 | 104.986 infer/sec | 854484 usec |
+| 100 | 105.43 infer/sec | 947724 usec |
 
 **Table 2: Long-term High Voltage Concurrent Extreme Performance Stress Test**
 
-| Concurrency | Throughput (infer/sec) | Avg Latency (µsec) |
-| :---: | :---: | :---: |
-| 10 | 106.87 | 93,313 |
-| 20 | 106.32 | 187,028 |
-| 30 | 105.76 | 283,234 |
-| 40 | 103.92 | 376,484 |
-| 50 | 105.76 | 476,418 |
-| 60 | 102.92 | 572,095 |
-| 70 | 104.41 | 663,141 |
-| **80** | **104.87** | **758,578** |
-| 90 | 104.98 | 854,484 |
-| 100 | 105.43 | 947,724 |
+| Client Metric | Value | Server Metric | Value |
+| :--- | :--- | :--- | :--- |
+| **Request count** | 113175 | **Inference count** | 113175 |
+| **Throughput** | 104.78 infer/sec | **Execution count** | 4255 |
+| **Avg latency** | 763287 usec (standard deviation 10079 usec) | **Successful request count** | 113175 |
+| **p50 latency** | 762714 usec | | |
+| **p90 latency** | 857837 usec | | |
+| **p95 latency** | 899918 usec | **Avg request latency** | 759977 usec (overhead 447 usec + queue 217111 usec + compute input 1406 usec + compute infer 537271 usec + compute output 3740 usec) |
+| **p99 latency** | 986845 usec | | |
+| **Avg HTTP time** | 763279 usec (send/recv 1076 usec + response wait 762203 usec) | | |
 
 ### 🚀 How to Run
 
