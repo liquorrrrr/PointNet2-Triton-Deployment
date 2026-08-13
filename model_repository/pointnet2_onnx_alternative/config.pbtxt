@@ -1,0 +1,35 @@
+name: "pointnet2_onnx_alternative"
+backend: "python"
+max_batch_size: 32  # 允许的最大 Batch 数量，按需修改
+
+# 定义输入（点云坐标）
+input [
+  {
+    name: "points"
+    data_type: TYPE_FP32
+    dims: [ -1, 6 ]  # -1 代表 N 是动态的，可以是任意点数（如 8192 或 1024）
+  }
+]
+
+# 定义输出（分割预测结果）
+output [
+  {
+    name: "segmentation_output"
+    data_type: TYPE_FP32
+    dims: [ -1, 5 ]  # 分割类别
+  }
+]
+
+# 优化手段 1: 动态组批 (在 Batch 32 的性能优势下，榨干 GPU)
+dynamic_batching {
+  max_queue_delay_microseconds: 2000  # 最大等待 2ms
+  preferred_batch_size: [ 4, 8, 16, 32 ]  # 期望攒成的 Batch 梯度
+}
+
+# 优化手段 2: 多实例并发
+instance_group [
+  {
+    count: 2
+    kind: KIND_GPU
+  }
+]
