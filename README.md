@@ -2,10 +2,10 @@
 This project is based on the classic 3D point cloud network PointNet2, and uses OpenAI Triton language and NVIDIA Triton Server to achieve stable and reliable cloud deployment. It aims to address the pain points of "difficult operator compilation" and "slow model deployment" in the industrial application of 3D point cloud processing.
 ### 📊 The performance of the operator exceeds the CUDA baseline.
 
-![算子性能对比图](assets/op_performance.png) 
+![算子性能对比图](assets/FPS_ops_comparison_chart.png) 
 *(Figure: Comparison of underlying execution time between OpenAI Triton FPS operator and native CUDA operator in Nsight Compute)*
 
-![算子性能对比图](assets/op_performance.png) 
+![算子性能对比图](assets/BQ_ops_comparison_chart.png) 
 *(Figure: Comparison of underlying execution time between OpenAI Triton BQ operator and native CUDA operator in Nsight Compute)*
 
 **Core optimization motivation：** 
