@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-# Triton 算子
 from triton_ops.triton_fps_v1 import triton_fps_v1
 from triton_ops.triton_fps_v2 import triton_fps_v2
 from triton_ops.triton_bq_v1 import triton_bq_v1
@@ -28,7 +27,7 @@ def index_points(points, idx):
     new_points = points[batch_indices, idx, :]
     return new_points
 
-# ==================== FPS 算子 ====================
+# ==================== FPS ====================
 def farthest_point_sample_pytorch(xyz, npoint):
     device = xyz.device
     B, N, C = xyz.shape
@@ -63,7 +62,7 @@ def farthest_point_sample(xyz, npoint):
     torch.cuda.nvtx.range_pop()
     return out
 
-#----------------------------- Ball Query 算子 -----------------------------   
+#----------------------------- Ball Query -----------------------------   
 def query_ball_point(radius, nsample, xyz, new_xyz):
     mode = "triton_v1"
 
@@ -178,7 +177,6 @@ class PointNetSetAbstractionMsg(nn.Module):
         B, N, C = xyz.shape
         S = self.npoint
         
-        # FPS 采样
         fps_idx = farthest_point_sample(xyz, S)
         new_xyz = index_points(xyz, fps_idx)
         
