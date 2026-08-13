@@ -21,15 +21,59 @@ To verify the industrial-grade reliability of this link, we concurrently ran two
 
 **Table 1: Short-term Stepwise Concurrent Stress Testing**
 
+| Metric Category | Key Indicator | Value | Detailed Breakdown |
+| :--- | :--- | :--- | :--- |
+| **Global Throughput** | **Throughput** | **104.78 infer/sec** | Total Request/Inference Count: 113,175 (100% Success) |
+| **Execution Stats** | Execution Count | 4,255 | Averaged Dynamic Batch Size: ~26.59 |
+| **Latency Percentiles** | **p99 Latency** | **986,845 µsec** | p50: 762,714 µsec \| p90: 857,837 µsec \| p95: 899,918 µsec |
+| **Request Breakdown** | Avg Request Latency | 759,977 µsec | **Compute**: 537,271 µsec \| **Queue**: 217,111 µsec \| Input/Output: ~5,146 µsec |
+| **HTTP Overhead** | Avg HTTP Time | 763,279 µsec | Send/Recv: 1,076 µsec \| Response Wait: 762,203 µsec |
+
+*(Note: The compute overhead only took ~537ms, while dynamic batching queue took ~217ms, proving the hardware is perfectly saturated without queue avalanches.)*
+
 **Table 2: Long-term High Voltage Concurrent Extreme Performance Stress Test**
+
+| Concurrency | Throughput (infer/sec) | Avg Latency (µsec) |
+| :---: | :---: | :---: |
+| 10 | 106.87 | 93,313 |
+| 20 | 106.32 | 187,028 |
+| 30 | 105.76 | 283,234 |
+| 40 | 103.92 | 376,484 |
+| 50 | 105.76 | 476,418 |
+| 60 | 102.92 | 572,095 |
+| 70 | 104.41 | 663,141 |
+| **80** | **104.87** | **758,578** |
+| 90 | 104.98 | 854,484 |
+| 100 | 105.43 | 947,724 |
 
 ### 🚀 How to Run
 
-**Pre-requisite：** The hosting machine has installed Docker and the [NVIDIA Container Toolkit] which supports GPU penetration.(<a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html" title="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html" target="_blank"><img src="/images/ext/file.png" alt="" style="width: 32px; height: 32px; vertical-align: middle;"></a>)。
+**Prerequisites:** 
+The host machine must have Docker installed along with the [NVIDIA Container Toolkit](<a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html" title="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html" target="_blank"><img src="/images/ext/file.png" alt="" style="width: 32px; height: 32px; vertical-align: middle;"></a>) to enable GPU passthrough.
 
-**1. Build a customized image**
-Since the official TIS image lacks the Triton compilation environment, the dependencies need to be completed by using the Dockerfile:
+**1. Build the Custom Image**
+Since the official TIS image lacks the Triton compilation environment, we first resolve dependencies via the Dockerfile:
 ```bash
 docker build -t custom_tis_pointnet:v1 .
+```
 
-2. One-click Service Activation
+**2. Start the Service**
+```bash
+docker run --gpus all --rm --net=host --privileged \
+  -v $(pwd)/model_repository:/models \
+  custom_tis_pointnet:v1 \
+  tritonserver --model-repository=/models
+```
+
+**3. Run Concurrent Stress Test**
+```bash
+docker run -it --rm --net=host nvcr.io/nvidia/tritonserver:23.10-py3-sdk \
+  perf_analyzer -m pointnet2_onnx_alternative -u localhost:8000 \
+  --concurrency-range 80:80 --shape points:8192,6 -p 300000
+```
+
+---
+
+### 🙏 Acknowledgements
+
+Special thanks to [erikwijmans](https://github.com/erikwijmans/Pointnet2_PyTorch) for the outstanding open-source project `Pointnet2_PyTorch`. The PyTorch network architecture and the baseline CUDA operators used for comparison in this project are highly inspired by and referenced from this repository.
