@@ -1,4 +1,4 @@
-# docker启动命令
+# Docker Startup Command
  docker run --gpus all \
   --rm \
   --name my_triton_server \
@@ -7,21 +7,21 @@
   pointnet2-tis:latest \
   tritonserver --model-repository=/models
 
-# 8002端口抓GPU使用率等情况
-curl localhost:8002/metrics
-
-# 压测命令（另一个docker作为客户端发请求）
-# 短压
+# Stress Testing Command (Another Docker acts as the client to send requests)
+# Short-term 
 root@iZbp12hp1ex5fa5lz3fug6Z:~# docker run -it --rm --net=host nvcr.io/nvidia/tritonserver:23.10-py3-sdk \
   perf_analyzer -m pointnet2_onnx_alternative \
   -u localhost:8000 \
   --concurrency-range 10:100:10 \
   --shape points:8192,6 \
-  -p 5000
-# 长压
+  -p 5000 # Test duration
+# Long-term
 docker run -it --rm --net=host nvcr.io/nvidia/tritonserver:23.10-py3-sdk \
   perf_analyzer -m pointnet2_onnx_alternative \
   -u localhost:8000 \
   --concurrency-range 80:80 \
   --shape points:8192,6 \
-  -p 300000
+  -p 300000 # Test duration
+
+# 8002 Port for Monitoring GPU Usage Rate
+curl localhost:8002/metrics
