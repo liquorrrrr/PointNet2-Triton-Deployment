@@ -9,7 +9,7 @@ This project is based on the classic 3D point cloud network PointNet2, and uses 
 *(Figure: Comparison of underlying execution time between OpenAI Triton BQ operator and native CUDA operator in Nsight Compute)*
 
 **Core optimization motivation：** 
-In order to create a fast cloud deployment route, we completely avoided the complex compilation chain of C++/CUDA and the cumbersome TensorRT operator plugin writing. We rewrote the core non-standard operators (Farthest Point Sampling and Ball Query) of PointNet++ using OpenAI Triton. As shown in the above figure, the throughput and time consumption of our FPS and BQ operators under different Batch sizes and input point cloud numbers N are superior to those of the CUDA operators. Specific test details can be found in assets/1.pdf. The test results prove that the performance of Triton operators in a pure Python environment has successfully matched and even surpassed the baseline of the CUDA operators written by the original author. **
+In order to create a fast cloud deployment route, we completely avoided the complex compilation chain of C++/CUDA and the cumbersome TensorRT operator plugin writing. We rewrote the core non-standard operators (Farthest Point Sampling and Ball Query) of PointNet++ using OpenAI Triton. As shown in the above figure, the throughput and time consumption of our FPS and BQ operators under different Batch sizes and input point cloud numbers N are superior to those of the CUDA operators. Specific test details can be found in assets/1.pdf. The test results prove that the performance of Triton operators in a pure Python environment has successfully matched and even surpassed the baseline of the CUDA operators written by the original author. 
 
 ---
 
@@ -50,7 +50,7 @@ To verify the industrial-grade reliability of this link, we concurrently ran two
 ### 🚀 How to Run
 
 **Prerequisites:** 
-The host machine must have Docker installed along with the [NVIDIA Container Toolkit](<a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html" title="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html" target="_blank"><img src="/images/ext/file.png" alt="" style="width: 32px; height: 32px; vertical-align: middle;"></a>) to enable GPU passthrough.
+The host machine must have Docker installed along with the [NVIDIA Container Toolkit] to enable GPU passthrough.
 
 **1. Build the Custom Image**
 Since the official TIS image lacks the Triton compilation environment, we first resolve dependencies via the Dockerfile:
