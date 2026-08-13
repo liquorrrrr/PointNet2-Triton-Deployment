@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from models.pointnet2_utils import PointNetSetAbstractionMsg, PointNetSetAbstraction, PointNetFeaturePropagation
 
 class get_model(nn.Module):
-    def __init__(self, num_classes=5, normal_channel=True): # 默认分类设为 5
+    def __init__(self, num_classes=5, normal_channel=True): 
         super(get_model, self).__init__()
         if normal_channel:
             additional_channel = 3
